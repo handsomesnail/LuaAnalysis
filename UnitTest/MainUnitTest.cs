@@ -13,7 +13,6 @@ namespace UnitTest
         [TestMethod]
         public void TestMethod1()
         {
-            //Type type = typeof(TargetAssembly.TargetClass);
             LuaAnalyzer.Test();
         }
 

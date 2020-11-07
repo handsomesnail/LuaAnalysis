@@ -12,9 +12,10 @@ extern "C"
 EXPORT int CALL Test(const char* luatext)
 {
 	Compile(luatext);
-	return 1;
+	return 100;
 }
 
 EXPORT RefData* CALL Execute(const char* luatext)
 {
+	return NULL;
 }

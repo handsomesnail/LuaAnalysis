@@ -116,14 +116,18 @@
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\$(Configuration)\
+      <Command>if $(Platform)==Win32 (
+    set platform=x86
+)
+if $(Platform)==x64 (
+    set platform=x64
+)
+set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\%platform%\$(Configuration)\
 if exist %UnitTestOutputFolder% (
     copy $(TargetPath) %UnitTestOutputFolder%
 ) else (
     echo %UnitTestOutputFolder% doesn't exist
-)
-
-</Command>
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -135,6 +139,7 @@ if exist %UnitTestOutputFolder% (
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Users\levizhao\source\repos\LuaAnalysis\src;</AdditionalIncludeDirectories>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -142,14 +147,18 @@ if exist %UnitTestOutputFolder% (
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\$(Configuration)\
+      <Command>if $(Platform)==Win32 (
+    set platform=x86
+)
+if $(Platform)==x64 (
+    set platform=x64
+)
+set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\%platform%\$(Configuration)\
 if exist %UnitTestOutputFolder% (
     copy $(TargetPath) %UnitTestOutputFolder%
 ) else (
     echo %UnitTestOutputFolder% doesn't exist
-)
-
-</Command>
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -168,14 +177,18 @@ if exist %UnitTestOutputFolder% (
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\$(Configuration)\
+      <Command>if $(Platform)==Win32 (
+    set platform=x86
+)
+if $(Platform)==x64 (
+    set platform=x64
+)
+set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\%platform%\$(Configuration)\
 if exist %UnitTestOutputFolder% (
     copy $(TargetPath) %UnitTestOutputFolder%
 ) else (
     echo %UnitTestOutputFolder% doesn't exist
-)
-
-</Command>
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -189,6 +202,7 @@ if exist %UnitTestOutputFolder% (
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Users\levizhao\source\repos\LuaAnalysis\src;</AdditionalIncludeDirectories>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -198,14 +212,18 @@ if exist %UnitTestOutputFolder% (
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\$(Configuration)\
+      <Command>if $(Platform)==Win32 (
+    set platform=x86
+)
+if $(Platform)==x64 (
+    set platform=x64
+)
+set UnitTestOutputFolder=$(SolutionDir)UnitTest\bin\%platform%\$(Configuration)\
 if exist %UnitTestOutputFolder% (
     copy $(TargetPath) %UnitTestOutputFolder%
 ) else (
     echo %UnitTestOutputFolder% doesn't exist
-)
-
-</Command>
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

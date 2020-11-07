@@ -13,6 +13,8 @@ using UnityEngine;
 
 namespace LuaAnalysis
 {
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void OutputStrDelegate(string str);
 
     public class LuaAnalyzer : IDisposable

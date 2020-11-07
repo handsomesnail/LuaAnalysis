@@ -457,6 +457,6 @@ static void PrintFunction(const Proto* f, int full)
 
 Proto* Compile(const char* luatext)
 {
-    Print("locals for :\n");
+    Print(luatext);
     return NULL;
 }
