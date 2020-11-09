@@ -30,7 +30,7 @@ namespace LuaAnalysis
 
         static LuaAnalyzer()
         {
-            Redirect(OutputStr);
+            Redirect(Print);
         }
 
         public LuaAnalyzer(ICollection<Assembly> assemblies) : this()
@@ -106,29 +106,24 @@ namespace LuaAnalysis
         }
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int Test(string content);
+        private static extern int Test([MarshalAs(UnmanagedType.LPStr)]string content);
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern IntPtr GetRefData(string content);
+        private static extern IntPtr GetRefData([MarshalAs(UnmanagedType.LPStr)]string content);
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern IntPtr Execute(string content);
+        private static extern IntPtr Execute([MarshalAs(UnmanagedType.LPStr)]string content);
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern void Redirect(OutputStrDelegate callback);
+        private static extern void Redirect([MarshalAs(UnmanagedType.FunctionPtr)]OutputStrDelegate callback);
 
-        private static void Print(string message)
+        private static void Print([MarshalAs(UnmanagedType.LPStr)]string message)
         {
 #if UNITY_PUBLISH
             Debug.Log(message);
 #else
             Console.WriteLine(message);
 #endif
-        }
-
-        private static void OutputStr(string str)
-        {
-            Print(str);
         }
 
         private static RefData[] ParseRefData(IntPtr ptr)
