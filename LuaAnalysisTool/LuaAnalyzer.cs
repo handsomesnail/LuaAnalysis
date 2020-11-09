@@ -137,11 +137,11 @@ namespace LuaAnalysis
                 IntPtr tempPtr = IntPtr.Zero;
                 if(IntPtr.Size == 4) //x86
                 {
-                    tempPtr = new IntPtr((ptr.ToInt32() + i * size));
+                    tempPtr = new IntPtr(ptr.ToInt32() + i * size);
                 }
                 else if(IntPtr.Size == 8) //x64
                 {
-                    tempPtr = new IntPtr((ptr.ToInt64() + i * size));
+                    tempPtr = new IntPtr(ptr.ToInt64() + i * size);
                 }
                 output[i] = (RefData)Marshal.PtrToStructure(tempPtr, typeof(RefData));
             }
