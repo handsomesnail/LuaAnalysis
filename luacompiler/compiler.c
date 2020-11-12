@@ -457,6 +457,18 @@ static void PrintFunction(const Proto* f, int full)
 
 Proto* Compile(const char* luatext)
 {
-    Print(luatext);
-    return NULL;
+	lua_State* L = luaL_newstate();
+	if (L == NULL)
+	{
+		Print("cannot create state: not enough memory");
+		return NULL;
+	}
+
+	if (luaL_loadstring(L, luatext) != LUA_OK) {
+		//compile error
+		Print(lua_tostring(L, -1));
+		return NULL;
+	}
+    Proto* proto = toproto(L, -1);
+	return proto;
 }
