@@ -1,4 +1,4 @@
-
+﻿
 #ifdef __cplusplus
 extern "C"
 {
@@ -11,8 +11,15 @@ extern "C"
 
 EXPORT int CALL Test(const char* luatext)
 {
-	Compile(luatext);
-	return 100;
+	lua_State* L = NULL;
+	Proto* proto = Compile(luatext, L);
+	Printf("sizecode: %d\n", proto->sizecode);
+	//分析Proto* 结构
+	if (L != NULL)
+	{
+		lua_close(L);
+	}
+	return 0;
 }
 
 EXPORT RefData* CALL Execute(const char* luatext)

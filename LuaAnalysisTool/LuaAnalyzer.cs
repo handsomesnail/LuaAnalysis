@@ -52,12 +52,12 @@ namespace LuaAnalysis
                     }
                     if (assembly == null)
                     {
-                        Print("load assembly error");
+                        Print("load assembly error\n");
                     }
                 }
                 catch (Exception e)
                 {
-                    Print("load assembly error:" + e);
+                    Print("load assembly error:" + e+"\n");
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace LuaAnalysis
         ~LuaAnalyzer()
         {
             Dispose(false);
-            Print("Finilze");
+            Print("Finilze\n");
         }
 
         public void Dispose()
@@ -100,9 +100,9 @@ namespace LuaAnalysis
             return new LuaAnalyzer(assemblies);
         }
 
-        public static void Test()
+        public static void TestMethod(string input)
         {
-            Print(Test("aaa").ToString());
+            Test(input);
         }
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -122,7 +122,7 @@ namespace LuaAnalysis
 #if UNITY_PUBLISH
             Debug.Log(message);
 #else
-            Console.WriteLine(message);
+            Console.Write(message);
 #endif
         }
 
