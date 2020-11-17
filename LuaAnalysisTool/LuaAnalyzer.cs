@@ -100,13 +100,13 @@ namespace LuaAnalysis
             return new LuaAnalyzer(assemblies);
         }
 
-        public static void TestMethod(string input)
+        public static void TestMethod(string name, string input)
         {
-            Test(input);
+            Test(name, input);
         }
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int Test([MarshalAs(UnmanagedType.LPStr)]string content);
+        private static extern int Test([MarshalAs(UnmanagedType.LPStr)]string name, [MarshalAs(UnmanagedType.LPStr)]string content);
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern IntPtr GetRefData([MarshalAs(UnmanagedType.LPStr)]string content);

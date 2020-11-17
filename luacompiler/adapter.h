@@ -19,6 +19,8 @@ typedef void (CALL* putstr_func)(const char*);
 
 void Print(const char* str);
 
+void PrintLine(const char* str);
+
 int Printf(char const* const _Format, ...);
 
 #endif

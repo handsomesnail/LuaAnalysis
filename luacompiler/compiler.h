@@ -8,6 +8,6 @@ typedef struct RefData {
 	int line;
 } RefData;
 
-Proto* Compile(const char* luatext, lua_State* L);
+lua_State* Compile(const char* name, const char* luatext);
 
 #endif

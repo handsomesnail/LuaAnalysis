@@ -405,6 +405,7 @@ static void PrintHeader(const Proto* f)
         s = "(bstring)";
     else
         s = "(string)";
+
 	Printf("\n%s <%s:%d,%d> (%d instruction%s at %p)\n",
         (f->linedefined == 0) ? "main" : "function", s,
         f->linedefined, f->lastlinedefined,
@@ -456,23 +457,29 @@ static void PrintFunction(const Proto* f, int full)
 ** append...
 */
 
-Proto* Compile(const char* luatext, lua_State* L)
+lua_State* Compile(const char * name, const char* luatext)
 {
-	L = luaL_newstate();
+    lua_State* L = luaL_newstate();
 	if (L == NULL)
 	{
 		Print("cannot create state: not enough memory\n");
 		return NULL;
 	}
-
-	if (luaL_loadstring(L, luatext) != LUA_OK) {
-		//compile error
-		Print(lua_tostring(L, -1));
-		return NULL;
-	}
-    Proto* proto = toproto(L, -1);
+    int size = (strlen(name) + 3 + 1)*sizeof(char);
+    char* input_name = (char*)malloc(size);
+    snprintf(input_name, size, "=(%s)", name);
+    if (luaL_loadbufferx(L, luatext, strlen(luatext), input_name, NULL))
+    {
+        //compile error
+        PrintLine(lua_tostring(L, -1));
+        free(input_name);
+        lua_close(L);
+        return NULL;
+    }
+    free(input_name);
+    Proto* f = toproto(L, -1);
 #ifdef _DEBUG
-	PrintFunction(proto, 1);
+	PrintFunction(f, 1);
 #endif
-	return proto;
+	return L;
 }

@@ -4,6 +4,7 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LuaAnalysis;
 using System.IO;
+using System.Diagnostics;
 
 namespace UnitTest
 {
@@ -14,8 +15,9 @@ namespace UnitTest
         [TestMethod]
         public void TestMethod1()
         {
-            string scriptStr = IOUtil.Read("LuaSource", "input1.lua");
-            LuaAnalyzer.TestMethod(scriptStr);
+            string fileName = "input1.lua";
+            string scriptStr = IOUtil.Read("LuaSource", fileName);
+            LuaAnalyzer.TestMethod(fileName, scriptStr);
         }
 
         [TestMethod]
@@ -26,6 +28,15 @@ namespace UnitTest
         }
 
         //TODO: 内存泄漏，内存占用量
+
+        private float GetMemoryUsed()
+        {
+            string name = Process.GetCurrentProcess().ProcessName;
+            PerformanceCounter ramCounter = new PerformanceCounter("Process", "Working Set", name);
+            float value = ramCounter.NextValue();
+            ramCounter.Close();
+            return value;
+        }
 
     }
 }

@@ -19,6 +19,11 @@ void Print(const char* str)
 	}
 }
 
+void PrintLine(const char* str)
+{
+	Printf("%s\n", str);
+}
+
 int Printf(char const* const _Format, ...)
 {
 	static char buffer[1024];
