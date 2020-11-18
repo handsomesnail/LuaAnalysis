@@ -28,3 +28,7 @@ c(bbb);
 c(bbbb);
 
 c(CS.GameObejct.Active);
+
+i = {};
+table.insert(i, 996);
+print(1024);

@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adapter.h" />
+    <ClInclude Include="analyzer.h" />
     <ClInclude Include="compiler.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

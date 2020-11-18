@@ -3,11 +3,6 @@
 
 #include "lobject.h"
 
-typedef struct RefData {
-	char* refStr;
-	int line;
-} RefData;
-
-lua_State* Compile(const char* name, const char* luatext);
+extern lua_State* Compile(const char* name, const char* luatext);
 
 #endif

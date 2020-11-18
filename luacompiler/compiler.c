@@ -457,7 +457,9 @@ static void PrintFunction(const Proto* f, int full)
 ** append...
 */
 
-lua_State* Compile(const char * name, const char* luatext)
+#include "lualib.h"
+
+extern lua_State* Compile(const char * name, const char* luatext)
 {
     lua_State* L = luaL_newstate();
 	if (L == NULL)
@@ -477,6 +479,8 @@ lua_State* Compile(const char * name, const char* luatext)
         return NULL;
     }
     free(input_name);
+    luaL_openlibs(L);
+    //Printf("table: %d\n", lua_getglobal(L, "table"));
     Proto* f = toproto(L, -1);
 #ifdef _DEBUG
 	PrintFunction(f, 1);

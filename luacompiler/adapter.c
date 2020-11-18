@@ -11,7 +11,7 @@ EXPORT void CALL Redirect(putstr_func func)
 	putstr_callback("Redirect OK\n");
 }
 
-void Print(const char* str) 
+extern void Print(const char* str) 
 {
 	printf(str);
 	if (putstr_callback != NULL) {
@@ -19,12 +19,12 @@ void Print(const char* str)
 	}
 }
 
-void PrintLine(const char* str)
+extern void PrintLine(const char* str)
 {
 	Printf("%s\n", str);
 }
 
-int Printf(char const* const _Format, ...)
+extern int Printf(char const* const _Format, ...)
 {
 	static char buffer[1024];
 	va_list arg_list;

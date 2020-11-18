@@ -25,6 +25,8 @@ extern "C"
 }
 #endif
 
+#include "analyzer.h"
+
 #ifdef __cplusplus
 
 #include <string>
