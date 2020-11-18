@@ -480,7 +480,6 @@ extern lua_State* Compile(const char * name, const char* luatext)
     }
     free(input_name);
     luaL_openlibs(L);
-    //Printf("table: %d\n", lua_getglobal(L, "table"));
     Proto* f = toproto(L, -1);
 #ifdef _DEBUG
 	PrintFunction(f, 1);

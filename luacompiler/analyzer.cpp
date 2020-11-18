@@ -31,8 +31,10 @@ extern "C"
 
 #include <string>
 #include <list>
+#include "MetaRegistry.h"
 
 using namespace std;
+using namespace luacompiler;
 
 #endif
 
@@ -51,6 +53,16 @@ EXPORT int CALL Test(const char* name, const char* luatext)
 	
 	Proto* f = toproto(L, -1);
 	
+	MetaRegistry* _ENV = new MetaRegistry();
+	_ENV->AddRegistry("aaa");
+	if (_ENV->HasRegistry("aaa")) {
+		PrintLine("Has aaa");
+	}
+	MetaRegistry* test = _ENV->GetRegistry("bbb");
+	if (test == NULL) {
+		PrintLine("Is NULL");
+	}
+
 	//start Proto
 	const Instruction* code = f->code;
 
@@ -69,6 +81,7 @@ EXPORT int CALL Test(const char* name, const char* luatext)
 
 	//end
 
+	delete(_ENV);
 	lua_close(L);
 	return 0;
 }

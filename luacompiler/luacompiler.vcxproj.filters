@@ -20,6 +20,9 @@
     <ClCompile Include="adapter.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="MetaRegistry.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compiler.h">
@@ -29,6 +32,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="analyzer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaRegistry.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

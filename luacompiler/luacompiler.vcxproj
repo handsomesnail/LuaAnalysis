@@ -22,6 +22,7 @@
     <ClCompile Include="adapter.c" />
     <ClCompile Include="analyzer.cpp" />
     <ClCompile Include="compiler.c" />
+    <ClCompile Include="MetaRegistry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lualib\lualib.vcxproj">
@@ -32,6 +33,7 @@
     <ClInclude Include="adapter.h" />
     <ClInclude Include="analyzer.h" />
     <ClInclude Include="compiler.h" />
+    <ClInclude Include="MetaRegistry.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
