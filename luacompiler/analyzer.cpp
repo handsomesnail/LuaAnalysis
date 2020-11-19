@@ -32,9 +32,9 @@ extern "C"
 #ifdef __cplusplus
 
 #include <string>
+#include <memory>
 #include <list>
 #include "MetaRegistry.h"
-
 
 using namespace std;
 using namespace luacompiler;
@@ -45,7 +45,8 @@ using namespace luacompiler;
 #define toproto(L,i) getproto(L->top+(i))
 
 static int IsTargetCode(Instruction i);
-static void ImprotReg(MetaRegistry* _env, const luaL_ExportReg* reg);
+static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg);
+static bool CheckByLuaLibs(shared_ptr<MetaRegistry> _env, list<string>* temp_table_list);
 
 EXPORT int CALL Test(const char* name, const char* luatext)
 {
@@ -55,18 +56,16 @@ EXPORT int CALL Test(const char* name, const char* luatext)
 		return -1;
 	}
 	
-	Proto* f = toproto(L, -1);
-	
-	MetaRegistry* _ENV = new MetaRegistry(LUA_G, LUA_TTABLE);
+	shared_ptr<MetaRegistry> _ENV( new MetaRegistry(LUA_G, LUA_TTABLE));
 	const luaL_ExportReg* exprot_regs = get_exportLibs();
-	const luaL_ExportReg* reg;
-	for (reg = exprot_regs; !(reg->name==NULL && reg->func==NULL); reg++) {
-		ImprotReg(_ENV, reg);
+	for (const luaL_ExportReg* reg = exprot_regs; !(reg->name==NULL && reg->func==NULL); reg++) {
+		ImportReg(_ENV, reg);
 	}
-
 	//start Proto
+	Proto* f = toproto(L, -1);
 	const Instruction* code = f->code;
-
+	list<string> temp_table_list;
+	CheckByLuaLibs(_ENV, &temp_table_list);
 	//LUA_ENV
 	for (int pc = 0; pc < f->sizecode; pc++) {
 		Instruction i = code[pc];
@@ -82,10 +81,7 @@ EXPORT int CALL Test(const char* name, const char* luatext)
 
 	//end
 
-	delete(_ENV);
-	_ENV = NULL;
 	lua_close(L);
-	L = NULL;
 	return 0;
 }
 
@@ -110,7 +106,7 @@ static int IsTargetCode(Instruction i) {
 	}
 }
 
-static void ImprotReg(MetaRegistry* _env, const luaL_ExportReg* reg)
+static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg)
 {
 	MetaRegistry* meta_registry = _env->AddRegistry(reg->name, LUA_TTABLE);
 	Printf("------%s(%d)------\n", reg->name, LUA_TTABLE);
@@ -124,6 +120,11 @@ static void ImprotReg(MetaRegistry* _env, const luaL_ExportReg* reg)
 			else type = LUA_TNONE; //field placeholders
 		}
 		meta_registry->AddRegistry(lib->name, type);
-		Printf("%s(%d)\n", lib->name, type);
+		//Printf("%s(%d)\n", lib->name, type);
 	}
+}
+
+static bool CheckByLuaLibs(shared_ptr<MetaRegistry> _env, list<string>* temp_table_list)
+{
+	return true;
 }

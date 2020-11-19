@@ -7,13 +7,14 @@ local bbbb = CS.Json.NewtonSoft;
 --777 zzzz;
 
 local a2 = 12;
-local b2 = CS.UnityEngine.UI.Button();
+local b2 = CS.UnityEngine.UI.Button;
 local bb2 = CS.UnityEngine.RectTransform;
 local bbb2 = CS.System.Object;
 local bbbb2 = CS.Json.NewtonSoft;
 
 function c(d)
 	local e = "eeeeee";
+	local eee = bb222.zzzz;
 	print(bbbb2);
 	return "fffff";
 end

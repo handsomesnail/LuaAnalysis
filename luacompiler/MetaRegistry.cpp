@@ -1,10 +1,15 @@
+
+extern "C"
+{
+	#include "adapter.h"
+	#include "lua.h"
+	#include "llex.h"
+	#include "analyzer.h"
+}
+
 #include <string>
 #include <unordered_map>
-#include "adapter.h"
-#include "lua.h"
 #include "MetaRegistry.h"
-#include "llex.h"
-#include "analyzer.h"
 
 using namespace std;
 
@@ -18,6 +23,7 @@ namespace luacompiler {
 
 	MetaRegistry::~MetaRegistry()
 	{
+		Printf("%s Finalized\n", name.c_str());
 		for (auto iter = registry.begin(); iter != registry.end(); iter++)
 		{
 			if (!(name == LUA_G && iter->first == LUA_G))
