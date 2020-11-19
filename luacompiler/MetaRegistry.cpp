@@ -1,14 +1,18 @@
 #include <string>
 #include <unordered_map>
+#include "adapter.h"
 #include "lua.h"
 #include "MetaRegistry.h"
+#include "llex.h"
+#include "analyzer.h"
 
 using namespace std;
 
 namespace luacompiler {
 
-	MetaRegistry::MetaRegistry() {
-		type = LUA_TNONE;
+	MetaRegistry::MetaRegistry(string name, int type) {
+		this->name = name;
+		this->type = type;
 		value = NULL;
 	}
 
@@ -16,14 +20,22 @@ namespace luacompiler {
 	{
 		for (auto iter = registry.begin(); iter != registry.end(); iter++)
 		{
-			delete(iter->second);
+			if (!(name == LUA_G && iter->first == LUA_G))
+			{
+				delete(iter->second);
+				iter->second = NULL;
+			}
 		}
 		registry.clear();
 	}
 
 	MetaRegistry* MetaRegistry::GetRegistry(string key)
 	{
-		return registry[key];
+		if (name == LUA_G && key == LUA_ENV) //_ENV=_G
+		{
+			return registry[LUA_G];
+		}
+		else return registry[key];
 	}
 
 	bool MetaRegistry::HasRegistry(string key)
@@ -31,17 +43,29 @@ namespace luacompiler {
 		return GetRegistry(key) != NULL;
 	}
 
-	void MetaRegistry::AddRegistry(string key)
+	MetaRegistry* MetaRegistry::AddRegistry(string key, int type)
 	{
 		if (registry.find(key) == registry.end())
 		{
-			registry[key] = new MetaRegistry();
+			if (name == LUA_G && key == LUA_G)
+			{
+				registry[key] = this; //_G._G=_G
+			}
+			else
+			{
+				registry[key] = new MetaRegistry(key, type);
+			}
 		}
+		return GetRegistry(key);
 	}
 
 	int MetaRegistry::RemoveRegistry(string key)
 	{
-		return registry.erase(key);
+		if (name == LUA_G && key == LUA_G)
+		{
+			return 0;
+		}
+		else return registry.erase(key);
 	}
 
 }

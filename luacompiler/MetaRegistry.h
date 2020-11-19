@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include "lua.h"
 
 using namespace std;
 
@@ -11,15 +12,16 @@ namespace luacompiler
 	class MetaRegistry
 	{
 	private:
+		string name;
 		int type;
 		void* value;
 		unordered_map<string, MetaRegistry*> registry;
 	public:
-		MetaRegistry();
+		MetaRegistry(string name, int type = LUA_TNONE);
 		~MetaRegistry();
 		MetaRegistry* GetRegistry(string key);
 		bool HasRegistry(string key);
-		void AddRegistry(string key);
+		MetaRegistry* AddRegistry(string key, int type = LUA_TNONE);
 		int RemoveRegistry(string key);
 	};
 }

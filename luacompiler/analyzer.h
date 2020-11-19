@@ -10,6 +10,8 @@ extern "C"
 }
 #endif
 
+#define LUA_G "_G"
+
 typedef struct RefData {
 	char* refStr;
 	int line;
