@@ -166,3 +166,8 @@ LUAMOD_API int luaopen_coroutine (lua_State *L) {
   return 1;
 }
 
+LUAMOD_API const luaL_Reg* luaexport_co_funcs()
+{
+    return co_funcs;
+}
+

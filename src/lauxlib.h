@@ -33,6 +33,19 @@ typedef struct luaL_Reg {
   lua_CFunction func;
 } luaL_Reg;
 
+typedef const luaL_Reg* (*lua_ExportFunction) ();
+
+#define EXPORT_REG_UNKNOWN 0
+#define EXPORT_REG_FUNCTION 1
+#define EXPORT_REG_FIELD 2
+
+typedef struct luaL_ExportReg
+{
+    const char* name;
+    lua_ExportFunction func;
+    int type;
+} luaL_ExportReg;
+
 
 #define LUAL_NUMSIZES	(sizeof(lua_Integer)*16 + sizeof(lua_Number))
 

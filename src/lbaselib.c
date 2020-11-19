@@ -496,3 +496,8 @@ LUAMOD_API int luaopen_base (lua_State *L) {
   return 1;
 }
 
+LUAMOD_API const luaL_Reg* luaexport_base_funcs()
+{
+    return base_funcs;
+}
+

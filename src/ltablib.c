@@ -448,3 +448,8 @@ LUAMOD_API int luaopen_table (lua_State *L) {
   return 1;
 }
 
+LUAMOD_API const luaL_Reg* luaexport_tab_funcs()
+{
+    return tab_funcs;
+}
+

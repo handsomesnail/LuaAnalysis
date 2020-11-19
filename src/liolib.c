@@ -730,6 +730,14 @@ static const luaL_Reg flib[] = {
 };
 
 
+static const luaL_Reg io_fields[] = {
+    {"stdin", NULL},
+    {"stdout", NULL},
+    {"stderr", NULL},
+    {NULL, NULL}
+};
+
+
 static void createmeta (lua_State *L) {
   luaL_newmetatable(L, LUA_FILEHANDLE);  /* create metatable for file handles */
   lua_pushvalue(L, -1);  /* push metatable */
@@ -772,5 +780,15 @@ LUAMOD_API int luaopen_io (lua_State *L) {
   createstdfile(L, stdout, IO_OUTPUT, "stdout");
   createstdfile(L, stderr, NULL, "stderr");
   return 1;
+}
+
+LUAMOD_API const luaL_Reg* luaexport_io_funcs()
+{
+    return iolib;
+}
+
+LUAMOD_API const luaL_Reg* luaexport_io_fields()
+{
+    return io_fields;
 }
 

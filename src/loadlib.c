@@ -788,3 +788,13 @@ LUAMOD_API int luaopen_package (lua_State *L) {
   return 1;  /* return 'package' table */
 }
 
+LUAMOD_API const luaL_Reg* luaexport_pk_funcs()
+{
+    return pk_funcs;
+}
+
+LUAMOD_API const luaL_Reg* luaexport_ll_funcs()
+{
+    return ll_funcs;
+}
+

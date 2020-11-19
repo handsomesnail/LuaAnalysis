@@ -454,3 +454,8 @@ LUAMOD_API int luaopen_debug (lua_State *L) {
   return 1;
 }
 
+LUAMOD_API const luaL_Reg* luaexport_debug_funcs()
+{
+    return dblib;
+}
+

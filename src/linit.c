@@ -56,6 +56,24 @@ static const luaL_Reg loadedlibs[] = {
   {NULL, NULL}
 };
 
+static const luaL_ExportReg exportedlibs[] =
+{
+    {"_G", luaexport_base_funcs, EXPORT_REG_FUNCTION},
+    {"_G", luaexport_ll_funcs, EXPORT_REG_FUNCTION},
+    {LUA_LOADLIBNAME, luaexport_pk_funcs, EXPORT_REG_FUNCTION},
+    {LUA_COLIBNAME, luaexport_co_funcs, EXPORT_REG_FUNCTION},
+    {LUA_TABLIBNAME, luaexport_tab_funcs, EXPORT_REG_FUNCTION},
+    {LUA_IOLIBNAME, luaexport_io_funcs, EXPORT_REG_FUNCTION},
+    {LUA_IOLIBNAME, luaexport_io_fields, EXPORT_REG_FIELD},
+    {LUA_OSLIBNAME, luaexport_os_funcs, EXPORT_REG_FUNCTION},
+    {LUA_STRLIBNAME, luaexport_string_funcs, EXPORT_REG_FUNCTION},
+    {LUA_MATHLIBNAME, luaexport_math_funcs, EXPORT_REG_FUNCTION},
+    {LUA_UTF8LIBNAME, luaexport_utf8_funcs, EXPORT_REG_FUNCTION},
+    {LUA_DBLIBNAME, luaexport_debug_funcs, EXPORT_REG_FUNCTION},
+    /* bit32 has been cancelled in 5.3 */
+    {NULL, NULL, EXPORT_REG_UNKNOWN},
+};
+
 
 LUALIB_API void luaL_openlibs (lua_State *L) {
   const luaL_Reg *lib;
@@ -64,5 +82,10 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
     luaL_requiref(L, lib->name, lib->func, 1);
     lua_pop(L, 1);  /* remove lib */
   }
+}
+
+LUALIB_API const luaL_ExportReg* get_exportLibs()
+{
+    return exportedlibs;
 }
 

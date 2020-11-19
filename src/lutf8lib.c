@@ -254,3 +254,9 @@ LUAMOD_API int luaopen_utf8 (lua_State *L) {
   return 1;
 }
 
+LUAMOD_API const luaL_Reg* luaexport_utf8_funcs()
+{
+    return funcs;
+}
+
+
