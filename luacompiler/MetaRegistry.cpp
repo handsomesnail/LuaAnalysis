@@ -23,7 +23,7 @@ namespace luacompiler {
 
 	MetaRegistry::~MetaRegistry()
 	{
-		Printf("%s Finalized\n", name.c_str());
+		//Printf("%s Finalized\n", name.c_str());
 		for (auto iter = registry.begin(); iter != registry.end(); iter++)
 		{
 			if (!(name == LUA_G && iter->first == LUA_G))

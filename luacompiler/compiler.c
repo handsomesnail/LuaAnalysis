@@ -482,7 +482,12 @@ extern lua_State* Compile(const char * name, const char* luatext)
     luaL_openlibs(L);
     Proto* f = toproto(L, -1);
 #ifdef _DEBUG
-	//PrintFunction(f, 1);
+	PrintFunction(f, 1);
 #endif
 	return L;
+}
+
+extern const char* GetUpvalueName(Upvaldesc upvalue)
+{
+	return upvalue.name ? getstr(upvalue.name) : "-";
 }

@@ -46,7 +46,7 @@ using namespace luacompiler;
 
 static int IsTargetCode(Instruction i);
 static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg);
-static bool CheckByLuaLibs(shared_ptr<MetaRegistry> _env, list<string>* temp_table_list);
+static bool CheckByLuaLibs(shared_ptr<MetaRegistry> _env, list<string> temp_table_list);
 
 EXPORT int CALL Test(const char* name, const char* luatext)
 {
@@ -61,14 +61,24 @@ EXPORT int CALL Test(const char* name, const char* luatext)
 	for (const luaL_ExportReg* reg = exprot_regs; !(reg->name==NULL && reg->func==NULL); reg++) {
 		ImportReg(_ENV, reg);
 	}
+
 	//start Proto
 	Proto* f = toproto(L, -1);
 	const Instruction* code = f->code;
 	list<string> temp_table_list;
-	CheckByLuaLibs(_ENV, &temp_table_list);
-	//LUA_ENV
+	bool is_getting_env = false;
+	CheckByLuaLibs(_ENV, temp_table_list);
+
 	for (int pc = 0; pc < f->sizecode; pc++) {
 		Instruction i = code[pc];
+		OpCode op = GET_OPCODE(i);
+		if (op == OP_GETTABUP && GetUpvalueName(f->upvalues[GETARG_B(i)]) == LUA_ENV)
+		{
+			is_getting_env = true;
+		}
+
+		//TODO: follow the _ENV just in time
+
 		int b = IsTargetCode(i);
 		if (b != 0) {
 			const TValue* o = &f->k[INDEXK(b)];
@@ -119,12 +129,14 @@ static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg)
 				type = LUA_TFUNCTION;
 			else type = LUA_TNONE; //field placeholders
 		}
-		meta_registry->AddRegistry(lib->name, type);
+		if (lib->name != NULL) {
+			meta_registry->AddRegistry(lib->name, type);
+		}
 		//Printf("%s(%d)\n", lib->name, type);
 	}
 }
 
-static bool CheckByLuaLibs(shared_ptr<MetaRegistry> _env, list<string>* temp_table_list)
+static bool CheckByLuaLibs(shared_ptr<MetaRegistry> _env, list<string> temp_table_list)
 {
 	return true;
 }

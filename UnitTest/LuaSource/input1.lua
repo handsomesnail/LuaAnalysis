@@ -1,35 +1,21 @@
 local a = 12;
-local b = CS.UnityEngine.UI.Button();
-local bb = CS.UnityEngine.RectTransform;
-local bbb = CS.System.Object;
-local bbbb = CS.Json.NewtonSoft;
+local b = CS.UnityEngine.UI.Button;
 
---777 zzzz;
-
-local a2 = 12;
-local b2 = CS.UnityEngine.UI.Button;
-local bb2 = CS.UnityEngine.RectTransform;
-local bbb2 = CS.System.Object;
-local bbbb2 = CS.Json.NewtonSoft;
-
-function c(d)
-	local e = "eeeeee";
-	local eee = bb222.zzzz;
-	print(bbbb2);
-	return "fffff";
+function c(v)
+	f = b["pppp"];
+	local gg = t.sss;
+	return gg;
 end
 
-c("gggg");
+local d = "dddd";
 
-h = 555;
+c(30.5);
+c(a.Active);
+k.l = b.ooo;
+b.p.j = "pppp";
 
-c(b);
-c(bb);
-c(bbb);
-c(bbbb);
+t = {};
+table.insert(t, 996);
+print(y.z);
 
-c(CS.GameObejct.Active);
-
-i = {};
-table.insert(i, 996);
-print(1024);
+the_self = self;
