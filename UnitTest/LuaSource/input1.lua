@@ -19,3 +19,5 @@ table.insert(t, 996);
 print(y.z);
 
 the_self = self;
+
+local static = math.tech(number1, number2);

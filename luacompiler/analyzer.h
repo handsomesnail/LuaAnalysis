@@ -11,6 +11,7 @@ extern "C"
 #endif
 
 #define LUA_G "_G"
+#define CS_ENV "CS"
 
 typedef struct RefData {
 	char* refStr;

@@ -23,7 +23,6 @@ namespace luacompiler {
 
 	MetaRegistry::~MetaRegistry()
 	{
-		//Printf("%s Finalized\n", name.c_str());
 		for (auto iter = registry.begin(); iter != registry.end(); iter++)
 		{
 			if (!(name == LUA_G && iter->first == LUA_G))
@@ -39,9 +38,13 @@ namespace luacompiler {
 	{
 		if (name == LUA_G && key == LUA_ENV) //_ENV=_G
 		{
-			return registry[LUA_G];
+			key = LUA_G;
 		}
-		else return registry[key];
+		if (registry.find(key) != registry.end())
+		{
+			return registry[key];
+		}
+		else return NULL;
 	}
 
 	bool MetaRegistry::HasRegistry(string key)

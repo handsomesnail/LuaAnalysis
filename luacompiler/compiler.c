@@ -491,3 +491,16 @@ extern const char* GetUpvalueName(Upvaldesc upvalue)
 {
 	return upvalue.name ? getstr(upvalue.name) : "-";
 }
+
+extern const char* GetSourceName(Proto* f)
+{
+    const char* s = f->source ? getstr(f->source) : "=?";
+    if (*s == '@' || *s == '=')
+        s++;
+    else if (*s == LUA_SIGNATURE[0])
+        s = "(bstring)";
+    else
+        s = "(string)";
+
+    return s;
+}

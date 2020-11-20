@@ -13,9 +13,16 @@ using UnityEngine;
 
 namespace LuaAnalysis
 {
+    public enum LogLevel
+    {
+        Debug = 0,
+        Message = 1,
+        Warning = 2,
+        Error = 3,
+    }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void OutputStrDelegate(string str);
+    public delegate void OutputStrDelegate(string str, int level);
 
     public class LuaAnalyzer : IDisposable
     {
@@ -30,7 +37,7 @@ namespace LuaAnalysis
 
         static LuaAnalyzer()
         {
-            Redirect(Print);
+            Redirect(Output);
         }
 
         public LuaAnalyzer(ICollection<Assembly> assemblies) : this()
@@ -117,13 +124,29 @@ namespace LuaAnalysis
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Redirect([MarshalAs(UnmanagedType.FunctionPtr)]OutputStrDelegate callback);
 
-        private static void Print([MarshalAs(UnmanagedType.LPStr)]string message)
+        private static void Output([MarshalAs(UnmanagedType.LPStr)]string message, int level)
         {
 #if UNITY_PUBLISH
-            Debug.Log(message);
+            if(level == (int)LogLevel.Message)
+            {
+                Debug.Log(message);
+            }
+            else if(level == (int)LogLevel.Warning)
+            {
+                Debug.LogWarning(message);
+            }
+            else if(level == (int)LogLevel.Error)
+            {
+                Debug.LogError(message);
+            }
 #else
             Console.Write(message);
 #endif
+        }
+
+        private static void Print(string message)
+        {
+            Output(message, (int)LogLevel.Debug);
         }
 
         private static RefData[] ParseRefData(IntPtr ptr)
