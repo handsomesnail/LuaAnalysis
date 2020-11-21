@@ -17,14 +17,16 @@ namespace UnitTest
         {
             string fileName = "input1.lua";
             string scriptStr = IOUtil.Read("LuaSource", fileName);
-            LuaAnalyzer.TestMethod(fileName, scriptStr);
+            ICollection<Assembly> targetAssemblies = new List<Assembly>() { Assembly.Load("TargetAssembly") };
+            LuaAnalyzer luaAnalyzer = new LuaAnalyzer(targetAssemblies);
+            List<string> injections = new List<string>() { "t" };
+            luaAnalyzer.InjectSymbol(injections);
+            luaAnalyzer.Execute(fileName, scriptStr);
         }
 
         [TestMethod]
         public void TestMethod2()
         {
-            ICollection<Assembly> targetAssemblies = new List<Assembly>() { Assembly.Load("TargetAssembly") };
-            LuaAnalyzer luaAnalyzer = new LuaAnalyzer(targetAssemblies);
         }
 
         //TODO: 内存泄漏，内存占用量

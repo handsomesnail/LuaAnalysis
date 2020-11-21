@@ -12,14 +12,17 @@ extern "C"
 
 #define LUA_G "_G"
 #define CS_ENV "CS"
+#define LUA_SELF "self"
 
 typedef struct RefData {
 	char* refStr;
 	int line;
 } RefData;
 
-EXPORT int CALL Test(const char* name, const char* luatext);
+typedef int (CALL* extern_chk_func)(const char*);
 
-EXPORT RefData* CALL Execute(const char* luatext);
+EXPORT int CALL Execute(const char* name, const char* luatext, extern_chk_func extern_chk, extern_chk_func extern_inschk);
+
+//EXPORT RefData* CALL Execute(const char* luatext);
 
 #endif

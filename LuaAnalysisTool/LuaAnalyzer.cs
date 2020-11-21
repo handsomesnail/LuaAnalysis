@@ -24,12 +24,17 @@ namespace LuaAnalysis
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void OutputStrDelegate(string str, int level);
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int CheckExternSymbolDelegate(string str);
+
     public class LuaAnalyzer : IDisposable
     {
         private bool disposed = false;
 
         /// <summary>用于静态分析的独立AppDomain</summary>
         private AppDomain analysisAppDomain;
+
+        private HashSet<string> injectSymbols = new HashSet<string>();
 
         public LuaAnalyzer()
         {
@@ -107,19 +112,13 @@ namespace LuaAnalysis
             return new LuaAnalyzer(assemblies);
         }
 
-        public static void TestMethod(string name, string input)
-        {
-            Test(name, input);
-        }
-
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int Test([MarshalAs(UnmanagedType.LPStr)]string name, [MarshalAs(UnmanagedType.LPStr)]string content);
+        private static extern int Execute([MarshalAs(UnmanagedType.LPStr)]string name, [MarshalAs(UnmanagedType.LPStr)]string content, 
+            [MarshalAs(UnmanagedType.FunctionPtr)]CheckExternSymbolDelegate checkStaticSymbolCallback,
+            [MarshalAs(UnmanagedType.FunctionPtr)]CheckExternSymbolDelegate checkInstanceSymbolCallback);
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern IntPtr GetRefData([MarshalAs(UnmanagedType.LPStr)]string content);
-
-        [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern IntPtr Execute([MarshalAs(UnmanagedType.LPStr)]string content);
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Redirect([MarshalAs(UnmanagedType.FunctionPtr)]OutputStrDelegate callback);
@@ -127,7 +126,11 @@ namespace LuaAnalysis
         private static void Output([MarshalAs(UnmanagedType.LPStr)]string message, int level)
         {
 #if UNITY_PUBLISH
-            if(level == (int)LogLevel.Message)
+            if(level == (int)LogLevel.Debug) 
+            {
+                return;
+            }
+            if (level == (int)LogLevel.Message)
             {
                 Debug.Log(message);
             }
@@ -147,6 +150,57 @@ namespace LuaAnalysis
         private static void Print(string message)
         {
             Output(message, (int)LogLevel.Debug);
+        }
+
+        public void Execute(string name, string input) {
+            Execute(name, input, CheckExternStaticSymbol, CheckExternInstanceSymbol);
+        }
+
+#if UNITY_PUBLISH
+        public void Execute(TextAsset textAsset) {
+            Execute(textAsset.name, textAsset.text);
+        }
+#endif
+
+        public void InjectSymbol(ICollection<string> injections) {
+            injectSymbols = new HashSet<string>();
+            foreach(string injection in injections) {
+                if (!injectSymbols.Contains(injection)) {
+                    injectSymbols.Add(injection);
+                }
+            }
+        }
+
+        private int CheckExternStaticSymbol(string symbol) {
+            //递归到类的成员即可返回true
+            string[] array = symbol.Split('.');
+            Type typeGetted = null;
+            StringBuilder sb = new StringBuilder();
+            foreach(string s in array) {
+                if (typeGetted == null) {
+                    if (sb.ToString() != string.Empty) {
+                        sb.Append('.');
+                    }
+                    sb.Append(s);
+                    typeGetted = FindType(sb.ToString());
+                }
+                else {
+                    if (FindMember(typeGetted, s))
+                        return 0;
+                    else return -2; //get type, get no member
+                }
+            }
+            if (typeGetted != null)
+                return 0;
+            else return -1; //get no type
+        }
+
+        private int CheckExternInstanceSymbol(string symbol) {
+            string instance = symbol.Split('.')[0];
+            if (injectSymbols.Contains(instance)) {
+                return 0;
+            }
+            else return -1;
         }
 
         private static RefData[] ParseRefData(IntPtr ptr)
@@ -227,39 +281,9 @@ namespace LuaAnalysis
             return null;
         }
 
-        private bool FindStaticMember(Type type, string memberName)
-        {
-            return type.GetMember(memberName, BindingFlags.Static).Length != 0;
-        }
-
-#if UNITY_PUBLISH
-        public int CheckCSharpRefByLua(ICollection<TextAsset> inputLuaScripts)
-        {
-            int errorCount = 0;
-            foreach (TextAsset luaScript in inputLuaScripts)
-            {
-                int count = CheckCSharpRefByLua(luaScript.name, luaScript.text);
-                if (count > 0)
-                {
-                    errorCount += count;
-                }
-            }
-            return errorCount;
-        }
-#endif
-
-        public int CheckCSharpRefByLua(ICollection<KeyValuePair<string, string>> inputLuaScripts)
-        {
-            int errorCount = 0;
-            foreach (KeyValuePair<string, string> luaScript in inputLuaScripts)
-            {
-                int count = CheckCSharpRefByLua(luaScript.Key, luaScript.Value);
-                if (count > 0)
-                {
-                    errorCount += count;
-                }
-            }
-            return errorCount;
+        private bool FindMember(Type type, string memberName) {
+            BindingFlags flag = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            return type.GetMember(memberName, flag).Length != 0;
         }
 
     }

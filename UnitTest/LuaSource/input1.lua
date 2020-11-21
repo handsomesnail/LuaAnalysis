@@ -1,18 +1,18 @@
 local a = 12;
-local b = CS.UnityEngine.UI.Button;
+local b = CS.TargetAssembly.TargetClass.targetStaticMember.value;
 
 function c(v)
-	f = b["pppp"];
+	f.ll = b["pppp"];
 	local gg = t.sss;
 	return gg;
 end
-
 local d = "dddd";
+
 
 c(30.5);
 c(a.Active);
 k.l = b.ooo;
-b.p.j = "pppp";
+ddd.p.j = "pppp";
 
 t = {};
 table.insert(t, 996);

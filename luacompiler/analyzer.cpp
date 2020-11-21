@@ -45,10 +45,11 @@ using namespace luacompiler;
 #define toproto(L,i) getproto(L->top+(i))
 
 static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg);
-static bool CheckAvailable(shared_ptr<MetaRegistry> _env, list<string> temp_table_list);
+static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func extern_stchk, extern_chk_func extern_inschk);
+static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list, extern_chk_func extern_stchk, extern_chk_func extern_inschk);
 static string ConcatListString(list<string> table_list);
 
-EXPORT int CALL Test(const char* name, const char* luatext)
+EXPORT int CALL Execute(const char* name, const char* luatext, extern_chk_func extern_stchk, extern_chk_func extern_inschk)
 {
 	lua_State* L = Compile(name, luatext);
 	if (L == NULL)
@@ -63,82 +64,18 @@ EXPORT int CALL Test(const char* name, const char* luatext)
 		ImportReg(_ENV, reg);
 	}
 
-	//start Proto
+	//recursive defuse proto
 	Proto* f = toproto(L, -1);
-	const Instruction* code = f->code;
-	const char* source_name = GetSourceName(f);
-	list<string> temp_table_list;
-	int register_index = -1;
-	int decl_pc = -1;
-
-	for (int pc = 0; pc < f->sizecode; pc++) {
-		Instruction i = code[pc];
-		OpCode op = GET_OPCODE(i);
-		int a = GETARG_A(i);
-		int b = GETARG_B(i);
-		int c = GETARG_C(i);
-		int ax = GETARG_Ax(i);
-		int bx = GETARG_Bx(i);
-		int sbx = GETARG_sBx(i);
-		if (register_index != -1)
-		{
-			string append_key;
-			if (op == OP_GETTABLE && a == register_index && b == register_index) 
-			{
-				if (ISK(c)) 
-				{
-					const TValue* o = &f->k[INDEXK(c)];
-					if (ttype(o) == LUA_TSHRSTR || ttype(o) == LUA_TLNGSTR) {
-						const char* s = getstr(tsvalue(o));
-						append_key = s;
-					}
-				}
-			}
-			if (!append_key.empty())
-			{
-				temp_table_list.push_back(append_key);
-			}
-			else
-			{
-				bool result = CheckAvailable(_ENV, temp_table_list);
-				if (!result)
-				{
-					//⚠⚠string.c_str() char buffer and string hold same life
-					Printf("<%s:%d> unresolved external symbol \"%s\".\n", source_name, f->lineinfo[decl_pc], ConcatListString(temp_table_list).c_str());
-				}
-				register_index = -1;
-				decl_pc = -1;
-				temp_table_list.clear();
-			}
-		}
-
-		if (op == OP_GETTABUP && strcmp(GetUpvalueName(f->upvalues[b]), LUA_ENV)==0)
-		{
-			if (ISK(c))
-			{
-				const TValue* o = &f->k[INDEXK(c)];
-				if (ttype(o) == LUA_TSHRSTR || ttype(o) == LUA_TLNGSTR) {
-					register_index = a;
-					decl_pc = pc;
-					temp_table_list.clear();
-					const char* s = getstr(tsvalue(o));
-					temp_table_list.push_back(s);
-				}
-			}
-		}
-
-	}
-
-	//end
+	DefuseProto(f, _ENV, extern_stchk, extern_inschk);
 
 	lua_close(L);
 	return 0;
 }
 
-EXPORT RefData* CALL Execute(const char* luatext)
-{
-	return NULL;
-}
+//EXPORT RefData* CALL Execute(const char* luatext)
+//{
+//	return NULL;
+//}
 
 static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg)
 {
@@ -160,18 +97,139 @@ static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg)
 	}
 }
 
-static bool CheckAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list)
+static void AddReg(shared_ptr<MetaRegistry> _env, list<string> table_list)
 {
 	MetaRegistry* cur_reg = _env.get();
 	for (auto iter = table_list.begin(); iter != table_list.end(); iter++)
 	{
-		cur_reg = cur_reg->GetRegistry(iter->c_str());
-		if (cur_reg == NULL)
+		cur_reg = cur_reg->AddRegistry(*iter);
+	}
+}
+
+static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func extern_stchk, extern_chk_func extern_inschk) {
+	bool result = true;
+	const Instruction* code = f->code;
+	const char* source_name = GetSourceName(f);
+	list<string> temp_table_list;
+	int register_index = -1;
+	int decl_pc = -1;
+
+	//self
+	for (int pc = 0; pc < f->sizecode; pc++) {
+		Instruction i = code[pc];
+		OpCode op = GET_OPCODE(i);
+		int a = GETARG_A(i);
+		int b = GETARG_B(i);
+		int c = GETARG_C(i);
+		int ax = GETARG_Ax(i);
+		int bx = GETARG_Bx(i);
+		int sbx = GETARG_sBx(i);
+		if (register_index != -1)
 		{
-			break;
+			string append_key;
+			if (op == OP_GETTABLE && a == register_index && b == register_index)
+			{
+				if (ISK(c))
+				{
+					const TValue* o = &f->k[INDEXK(c)];
+					if (ttype(o) == LUA_TSHRSTR || ttype(o) == LUA_TLNGSTR) {
+						const char* s = getstr(tsvalue(o));
+						append_key = s;
+					}
+				}
+			}
+			if (!append_key.empty())
+			{
+				temp_table_list.push_back(append_key);
+			}
+			else
+			{
+				if (!CheckSymbolAvailable(_env, temp_table_list, extern_stchk, extern_inschk))
+				{
+					//⚠⚠string.c_str() char buffer and string hold same life
+					OutputFunc(LOG_LEVEL_WARNING, "<%s:%d> unresolved external symbol \"%s\".\n", source_name, f->lineinfo[decl_pc], ConcatListString(temp_table_list).c_str());
+					result = false;
+				}
+				register_index = -1;
+				decl_pc = -1;
+				temp_table_list.clear();
+			}
+		}
+
+		if (op == OP_GETTABUP && strcmp(GetUpvalueName(f->upvalues[b]), LUA_ENV) == 0)
+		{
+			if (ISK(c))
+			{
+				const TValue* o = &f->k[INDEXK(c)];
+				if (ttype(o) == LUA_TSHRSTR || ttype(o) == LUA_TLNGSTR) {
+					register_index = a;
+					decl_pc = pc;
+					temp_table_list.clear();
+					const char* s = getstr(tsvalue(o));
+					temp_table_list.push_back(s);
+				}
+			}
 		}
 	}
-	return cur_reg != NULL;
+
+	//child
+	for (int i = 0; i < f->sizep; i++)
+	{
+		if (!DefuseProto(f->p[i], _env, extern_stchk, extern_inschk)) {
+			result = false;
+		}
+	}
+
+	return result;
+}
+
+static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list, extern_chk_func extern_stchk, extern_chk_func extern_inschk)
+{
+	MetaRegistry* cur_reg = _env.get();
+	string begin = *(table_list.begin());
+	//ignore instance 
+	if (begin == LUA_SELF)
+	{
+		return true;
+	}
+	else
+	{
+		for (auto iter = table_list.begin(); iter != table_list.end(); iter++)
+		{
+			cur_reg = cur_reg->GetRegistry(*iter);
+			if (cur_reg == NULL)
+			{
+				break;
+			}
+		}
+
+		//check inject instance
+		if (cur_reg == NULL && extern_inschk != NULL)
+		{
+			int extern_chk_result = extern_inschk(ConcatListString(table_list).c_str());
+			if (extern_chk_result == 0)
+			{
+				AddReg(_env, table_list);
+				return true;
+			}
+		}
+
+		//check c# reference
+		if (cur_reg == NULL && begin == CS_ENV && extern_stchk !=NULL)
+		{
+			list<string> cs_table_list = table_list;
+			cs_table_list.erase(cs_table_list.begin()); //delete first node
+			int extern_chk_result = extern_stchk(ConcatListString(cs_table_list).c_str());
+			if (extern_chk_result == 0)
+			{
+				AddReg(_env, table_list);
+				return true;
+			}
+		}
+
+		return cur_reg != NULL;
+	}
+
 }
 
 static string ConcatListString(list<string> table_list)
