@@ -4,14 +4,14 @@
 #include <stdio.h>
 
 #ifdef _WIN32
-#define CALL _cdecl
+#define CALL __cdecl
 #ifdef __cplusplus
 #define EXPORT extern "C" __declspec(dllexport)
 #else
 #define EXPORT __declspec(dllexport)
 #endif
 #else
-#define CALL _cdecl
+#define CALL __cdecl
 #define EXPORT
 #endif
 
