@@ -8,7 +8,6 @@ function c(v)
 end
 local d = "dddd";
 
-
 c(30.5);
 c(a.Active);
 k.l = b.ooo;

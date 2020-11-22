@@ -66,10 +66,16 @@ EXPORT int CALL Execute(const char* name, const char* luatext, extern_chk_func e
 
 	//recursive defuse proto
 	Proto* f = toproto(L, -1);
-	DefuseProto(f, _ENV, extern_stchk, extern_inschk);
+	bool result = DefuseProto(f, _ENV, extern_stchk, extern_inschk);
 
 	lua_close(L);
-	return 0;
+
+	if (result)
+	{
+		OutputFunc(LOG_LEVEL_MESSAGE, "check passed");
+		return 0;
+	}
+	else return -1;
 }
 
 //EXPORT RefData* CALL Execute(const char* luatext)

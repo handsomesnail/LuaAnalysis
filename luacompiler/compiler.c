@@ -473,7 +473,7 @@ extern lua_State* Compile(const char * name, const char* luatext)
     if (luaL_loadbufferx(L, luatext, strlen(luatext), input_name, NULL))
     {
         //compile error
-        PrintLine(lua_tostring(L, -1));
+		OutputFunc(LOG_LEVEL_ERROR, "%s\n", lua_tostring(L, -1));
         free(input_name);
         lua_close(L);
         return NULL;
