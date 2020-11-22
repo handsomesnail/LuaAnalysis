@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace LuaAnalysisTool.LuaModule
+namespace LuaAnalysisTool.Common
 {
     internal enum LuaType
     {

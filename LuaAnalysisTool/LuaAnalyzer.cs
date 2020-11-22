@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using UnityEngine.SocialPlatforms;
 #if UNITY_PUBLISH
 using UnityEngine;
 #endif
@@ -19,6 +20,12 @@ namespace LuaAnalysis
         Message = 1,
         Warning = 2,
         Error = 3,
+    }
+
+    public enum ExecuteMode
+    {
+        Independent = 0,
+        Attached = 1,
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -34,6 +41,10 @@ namespace LuaAnalysis
         /// <summary>用于静态分析的独立AppDomain</summary>
         private AppDomain analysisAppDomain;
 
+        private ICollection<Assembly> attachedAssemblies;
+
+        private ExecuteMode executeMode;
+
         private HashSet<string> injectSymbols = new HashSet<string>();
 
         public LuaAnalyzer()
@@ -45,39 +56,47 @@ namespace LuaAnalysis
             Redirect(Output);
         }
 
-        public LuaAnalyzer(ICollection<Assembly> assemblies) : this()
+        public LuaAnalyzer(ICollection<Assembly> assemblies, ExecuteMode executeMode) : this()
         {
-            analysisAppDomain = AppDomain.CreateDomain("AnalysisAppDomain");
-            foreach(Assembly assembly in assemblies)
+            this.executeMode = executeMode;
+            if(executeMode == ExecuteMode.Independent)
             {
-                try
+                analysisAppDomain = AppDomain.CreateDomain("AnalysisAppDomain");
+                foreach (Assembly assembly in assemblies)
                 {
-                    byte[] rawAssembly = File.ReadAllBytes(assembly.Location);
-                    Assembly loadedAssembly = null;
                     try
                     {
-                        loadedAssembly = analysisAppDomain.Load(rawAssembly);
+                        byte[] rawAssembly = File.ReadAllBytes(assembly.Location);
+                        Assembly loadedAssembly = null;
+                        try
+                        {
+                            loadedAssembly = analysisAppDomain.Load(rawAssembly);
+                        }
+                        catch (BadImageFormatException)
+                        {
+                            // The assemblyName was invalid.  It is most likely a path.
+                        }
+                        if (assembly == null)
+                        {
+                            Output("load assembly error\n", 3);
+                        }
                     }
-                    catch (BadImageFormatException)
+                    catch (Exception e)
                     {
-                        // The assemblyName was invalid.  It is most likely a path.
+                        Output("load assembly error:" + e + "\n", 3);
                     }
-                    if (assembly == null)
-                    {
-                        Print("load assembly error\n");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Print("load assembly error:" + e+"\n");
                 }
             }
+            else if(executeMode == ExecuteMode.Attached)
+            {
+                this.attachedAssemblies = assemblies;
+            }
+
         }
 
         ~LuaAnalyzer()
         {
             Dispose(false);
-            Print("Finilze\n");
         }
 
         public void Dispose()
@@ -92,7 +111,7 @@ namespace LuaAnalysis
             {
                 return;
             }
-            if (analysisAppDomain != null)
+            if (executeMode == ExecuteMode.Independent && analysisAppDomain != null)
             {
                 AppDomain.Unload(analysisAppDomain);
             }
@@ -100,16 +119,17 @@ namespace LuaAnalysis
         }
 
         /// <summary>从UnityEditor调用</summary>
-        public static LuaAnalyzer CreateUnityLuaAnalyzer()
+        public static LuaAnalyzer CreateUnityLuaAnalyzer(ExecuteMode executeMode)
         {
             List<Assembly> assemblies = new List<Assembly>();
             assemblies.Add(Assembly.Load("mscorlib"));
             assemblies.Add(Assembly.Load("System"));
             assemblies.Add(Assembly.Load("System.Core"));
             assemblies.Add(Assembly.Load("Assembly-CSharp"));
+            assemblies.Add(Assembly.Load("Assembly-CSharp-firstpass"));
             assemblies.Add(Assembly.Load("UnityEngine"));
             assemblies.Add(Assembly.Load("UnityEngine.UI"));
-            return new LuaAnalyzer(assemblies);
+            return new LuaAnalyzer(assemblies, executeMode);
         }
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -172,6 +192,10 @@ namespace LuaAnalysis
         }
 
         private int CheckExternStaticSymbol(string symbol) {
+            if (string.IsNullOrEmpty(symbol))
+            {
+                return -3;
+            }
             //递归到类的成员即可返回true
             string[] array = symbol.Split('.');
             Type typeGetted = null;
@@ -196,6 +220,10 @@ namespace LuaAnalysis
         }
 
         private int CheckExternInstanceSymbol(string symbol) {
+            if (string.IsNullOrEmpty(symbol))
+            {
+                return -3;
+            }
             string instance = symbol.Split('.')[0];
             if (injectSymbols.Contains(instance)) {
                 return 0;
@@ -225,30 +253,18 @@ namespace LuaAnalysis
             return output;
         }
 
-        /// <summary>检查lua脚本对C#的错误引用</summary>
-        /// <param name="name">lua文件名</param>
-        /// <param name="content">lua脚本内容</param>
-        /// <returns>错误数量</returns>
-        public int CheckCSharpRefByLua(string name, string content)
-        {
-            int errorCount = 0;
-            //从inputLuaScrips中拿到一个结构 内容包括访问的C#名 lua行号
-            IntPtr refDataArrayPtr = GetRefData(content);
-            RefData[] refDataArr = ParseRefData(refDataArrayPtr);
-            foreach(RefData refData in refDataArr)
-            {
-                string refStr = refData.refStr;
-                foreach(Assembly assembly in analysisAppDomain.GetAssemblies())
-                {
-
-                }
-            }
-            return errorCount;
-        }
-
         private Type FindType(string className, bool isQualifiedName = false)
         {
-            foreach (Assembly assembly in analysisAppDomain.GetAssemblies())
+            ICollection<Assembly> targetAssembly = null;
+            if(executeMode == ExecuteMode.Independent)
+            {
+                targetAssembly = analysisAppDomain.GetAssemblies();
+            }
+            else if(executeMode == ExecuteMode.Attached)
+            {
+                targetAssembly = attachedAssemblies;
+            }
+            foreach (Assembly assembly in targetAssembly)
             {
                 Type klass = assembly.GetType(className);
 
@@ -283,7 +299,15 @@ namespace LuaAnalysis
 
         private bool FindMember(Type type, string memberName) {
             BindingFlags flag = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            return type.GetMember(memberName, flag).Length != 0;
+            if (type.GetMember(memberName, flag).Length == 0)
+            {
+                if (type.BaseType == null)
+                {
+                    return false;
+                }
+                else return FindMember(type.BaseType, memberName);
+            }
+            else return true;
         }
 
     }

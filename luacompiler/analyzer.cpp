@@ -176,6 +176,19 @@ static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func
 				}
 			}
 		}
+
+		if (op == OP_SETTABUP && strcmp(GetUpvalueName(f->upvalues[a]), LUA_ENV) == 0)
+		{
+			if (ISK(b))
+			{
+				const TValue* o = &f->k[INDEXK(b)];
+				if (ttype(o) == LUA_TSHRSTR || ttype(o) == LUA_TLNGSTR) {
+					const char* s = getstr(tsvalue(o));
+					_env->AddRegistry(s);
+				}
+			}
+		}
+
 	}
 
 	//child
