@@ -18,7 +18,7 @@ namespace UnitTest
             string fileName = "input1.lua";
             string scriptStr = IOUtil.Read("LuaSource", fileName);
             ICollection<Assembly> targetAssemblies = new List<Assembly>() { Assembly.Load("TargetAssembly") };
-            LuaAnalyzer luaAnalyzer = new LuaAnalyzer(targetAssemblies, ExecuteMode.Attached);
+            LuaAnalyzer luaAnalyzer = new LuaAnalyzer(targetAssemblies, ExecuteMode.Attached, null);
             List<string> injections = new List<string>() { "t" };
             luaAnalyzer.InjectSymbol(injections);
             luaAnalyzer.Execute(fileName, scriptStr);
@@ -30,7 +30,7 @@ namespace UnitTest
             string fileName = "input2.lua";
             string scriptStr = IOUtil.Read("LuaSource", fileName);
             ICollection<Assembly> targetAssemblies = new List<Assembly>() { Assembly.Load("TargetAssembly") };
-            LuaAnalyzer luaAnalyzer = new LuaAnalyzer(targetAssemblies, ExecuteMode.Attached);
+            LuaAnalyzer luaAnalyzer = new LuaAnalyzer(targetAssemblies, ExecuteMode.Attached, null);
             luaAnalyzer.Execute(fileName, scriptStr);
         }
 

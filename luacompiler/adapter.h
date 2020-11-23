@@ -12,7 +12,11 @@
 #endif
 #else
 #define CALL __cdecl
+#ifdef __cplusplus
+#define EXPORT extern "C"
+#else
 #define EXPORT
+#endif
 #endif
 
 #define LOG_LEVEL_DEBUG 0

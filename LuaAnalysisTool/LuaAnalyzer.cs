@@ -47,17 +47,18 @@ namespace LuaAnalysis
 
         private HashSet<string> injectSymbols = new HashSet<string>();
 
-        public LuaAnalyzer()
-        {
-        }
+        private static OutputStrDelegate logToFileCallback;
+
+        private LuaAnalyzer() { }
 
         static LuaAnalyzer()
         {
             Redirect(Output);
         }
 
-        public LuaAnalyzer(ICollection<Assembly> assemblies, ExecuteMode executeMode) : this()
+        public LuaAnalyzer(ICollection<Assembly> assemblies, ExecuteMode executeMode, OutputStrDelegate callback) : this()
         {
+            logToFileCallback = callback;
             this.executeMode = executeMode;
             if(executeMode == ExecuteMode.Independent)
             {
@@ -119,7 +120,7 @@ namespace LuaAnalysis
         }
 
         /// <summary>从UnityEditor调用</summary>
-        public static LuaAnalyzer CreateUnityLuaAnalyzer(ExecuteMode executeMode)
+        public static LuaAnalyzer CreateUnityLuaAnalyzer(ExecuteMode executeMode, OutputStrDelegate callback)
         {
             List<Assembly> assemblies = new List<Assembly>();
             assemblies.Add(Assembly.Load("mscorlib"));
@@ -129,7 +130,7 @@ namespace LuaAnalysis
             assemblies.Add(Assembly.Load("Assembly-CSharp-firstpass"));
             assemblies.Add(Assembly.Load("UnityEngine"));
             assemblies.Add(Assembly.Load("UnityEngine.UI"));
-            return new LuaAnalyzer(assemblies, executeMode);
+            return new LuaAnalyzer(assemblies, executeMode, callback);
         }
 
         [DllImport("luacompiler", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -165,6 +166,10 @@ namespace LuaAnalysis
 #else
             Console.Write(message);
 #endif
+            if (logToFileCallback != null)
+            {
+                logToFileCallback(message, level);
+            }
         }
 
         private static void Print(string message)
@@ -172,13 +177,13 @@ namespace LuaAnalysis
             Output(message, (int)LogLevel.Debug);
         }
 
-        public void Execute(string name, string input) {
-            Execute(name, input, CheckExternStaticSymbol, CheckExternInstanceSymbol);
+        public int Execute(string name, string input) {
+            return Execute(name, input, CheckExternStaticSymbol, CheckExternInstanceSymbol);
         }
 
 #if UNITY_PUBLISH
-        public void Execute(TextAsset textAsset) {
-            Execute(textAsset.name, textAsset.text);
+        public int Execute(TextAsset textAsset) {
+            return Execute(textAsset.name, textAsset.text);
         }
 #endif
 
