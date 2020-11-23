@@ -7,6 +7,8 @@
 
 using namespace std;
 
+#define LUA_TUSER -2
+
 namespace luacompiler 
 {
 	class MetaRegistry
@@ -23,6 +25,7 @@ namespace luacompiler
 		bool HasRegistry(string key);
 		MetaRegistry* AddRegistry(string key, int type = LUA_TNONE);
 		int RemoveRegistry(string key);
+		int GetType();
 	};
 }
 

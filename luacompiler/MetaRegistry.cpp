@@ -77,4 +77,9 @@ namespace luacompiler {
 		else return registry.erase(key);
 	}
 
+	int MetaRegistry::GetType()
+	{
+		return this->type;
+	}
+
 }

@@ -46,7 +46,7 @@ using namespace luacompiler;
 
 static void ImportReg(shared_ptr<MetaRegistry> _env, const luaL_ExportReg* reg);
 static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func extern_stchk, extern_chk_func extern_inschk);
-static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list, extern_chk_func extern_stchk, extern_chk_func extern_inschk);
+static int CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list, extern_chk_func extern_stchk, extern_chk_func extern_inschk);
 static string ConcatListString(list<string> table_list);
 
 EXPORT int CALL Execute(const char* name, const char* luatext, extern_chk_func extern_stchk, extern_chk_func extern_inschk)
@@ -150,7 +150,7 @@ static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func
 			}
 			else
 			{
-				if (!CheckSymbolAvailable(_env, temp_table_list, extern_stchk, extern_inschk))
+				if (CheckSymbolAvailable(_env, temp_table_list, extern_stchk, extern_inschk)!=0)
 				{
 					//⚠⚠string.c_str() char buffer and string hold same life
 					OutputFunc(LOG_LEVEL_WARNING, "<%s:%d> unresolved external symbol \"%s\".\n", source_name, f->lineinfo[decl_pc], ConcatListString(temp_table_list).c_str());
@@ -184,7 +184,13 @@ static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func
 				const TValue* o = &f->k[INDEXK(b)];
 				if (ttype(o) == LUA_TSHRSTR || ttype(o) == LUA_TLNGSTR) {
 					const char* s = getstr(tsvalue(o));
-					_env->AddRegistry(s);
+					if (pc > 0 && GET_OPCODE(code[pc - 1]) == OP_CLOSURE) {
+						_env->AddRegistry(s, LUA_TFUNCTION);
+					}
+					else {
+						_env->AddRegistry(s, LUA_TUSER);
+						OutputFunc(LOG_LEVEL_WARNING, "<%s:%d> defined global symbol \"%s\".\n", source_name, f->lineinfo[pc], s);
+					}
 				}
 			}
 		}
@@ -202,14 +208,14 @@ static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func
 	return result;
 }
 
-static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list, extern_chk_func extern_stchk, extern_chk_func extern_inschk)
+static int CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> table_list, extern_chk_func extern_stchk, extern_chk_func extern_inschk)
 {
 	MetaRegistry* cur_reg = _env.get();
 	string begin = *(table_list.begin());
 	//ignore instance 
 	if (begin == LUA_SELF)
 	{
-		return true;
+		return 0;
 	}
 	else
 	{
@@ -220,6 +226,10 @@ static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> tab
 			{
 				break;
 			}
+			if (cur_reg != NULL && cur_reg->GetType() == LUA_TUSER)
+			{
+				return 0;
+			}
 		}
 
 		//check inject instance
@@ -229,7 +239,7 @@ static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> tab
 			if (extern_chk_result == 0)
 			{
 				AddReg(_env, table_list);
-				return true;
+				return 0;
 			}
 		}
 
@@ -242,11 +252,18 @@ static bool CheckSymbolAvailable(shared_ptr<MetaRegistry> _env, list<string> tab
 			if (extern_chk_result == 0)
 			{
 				AddReg(_env, table_list);
-				return true;
+				return 0;
 			}
 		}
 
-		return cur_reg != NULL;
+		if (cur_reg != NULL)
+		{
+			return 0;
+		}
+		else
+		{
+			return -1;
+		}
 	}
 
 }
