@@ -7,6 +7,7 @@
 PLAT= none
 
 CC= gcc -std=gnu99
+CPP= g++ -std=c++14
 CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
@@ -42,8 +43,10 @@ LUA_O=	lua.o
 LUAC_T=	luac
 LUAC_O=	luac.o
 
-ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O)
-ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T)
+LUA_COMPILER= luacompiler
+
+ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O) adapter.o compiler.o MetaRegistry.o analyzer.o
+ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T) $(LUA_COMPILER)
 ALL_A= $(LUA_A)
 
 # Targets start here.
@@ -64,6 +67,10 @@ $(LUA_T): $(LUA_O) $(LUA_A)
 
 $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
+
+$(LUA_COMPILER): adapter.o compiler.o MetaRegistry.o analyzer.o $(LUA_A)
+	$(CPP) -o $@ -shared $(LDFLAGS) adapter.o compiler.o MetaRegistry.o analyzer.o $(LUA_A) $(LIBS)
+#MetaRegistry.o analyzer.o
 
 clean:
 	$(RM) $(ALL_T) $(ALL_O)
@@ -194,4 +201,9 @@ lvm.o: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
 lzio.o: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
  lobject.h ltm.h lzio.h
 
-# (end of Makefile)
+adapter.o: adapter.c adapter.h
+compiler.o: compiler.c lprefix.h compiler.h lua.h lauxlib.h lobject.h \
+	lstate.h lundump.h adapter.h
+MetaRegistry.o: MetaRegistry.cpp MetaRegistry.h adapter.h lua.h llex.h analyzer.h
+analyzer.o: analyzer.cpp lprefix.h analyzer.h lobject.h lstate.h lundump.h \
+	lua.h lauxlib.h lopcodes.h llex.h lualib.h adapter.h
