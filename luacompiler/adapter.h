@@ -10,7 +10,7 @@
 #else
 #define EXPORT __declspec(dllexport)
 #endif
-#else
+#else //OSX & Linux
 #define CALL __cdecl
 #ifdef __cplusplus
 #define EXPORT extern "C"

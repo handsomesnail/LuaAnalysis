@@ -190,6 +190,7 @@ static bool DefuseProto(Proto* f, shared_ptr<MetaRegistry> _env, extern_chk_func
 					else {
 						_env->AddRegistry(s, LUA_TUSER);
 						OutputFunc(LOG_LEVEL_WARNING, "<%s:%d> defined global symbol \"%s\".\n", source_name, f->lineinfo[pc], s);
+						result = false;
 					}
 				}
 			}
