@@ -15,10 +15,13 @@ using namespace std;
 
 namespace luacompiler {
 
+	const pair<int, int> MetaRegistry::max_life_cycle = pair<int, int>(0, MAX_INT);
+
 	MetaRegistry::MetaRegistry(string name, int type) {
 		this->name = name;
 		this->type = type;
 		value = NULL;
+		life_cycle = max_life_cycle;
 	}
 
 	MetaRegistry::~MetaRegistry()
@@ -80,6 +83,16 @@ namespace luacompiler {
 	int MetaRegistry::GetType()
 	{
 		return this->type;
+	}
+
+	void MetaRegistry::SetLifeCycle(pair<int, int> life_cycle)
+	{
+		this->life_cycle = life_cycle;
+	}
+
+	bool MetaRegistry::IsInLifeCycle(int pc)
+	{
+		return pc >= life_cycle.first && pc <= life_cycle.second;
 	}
 
 }
